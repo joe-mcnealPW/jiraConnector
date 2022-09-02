@@ -4,36 +4,14 @@ const fs = require("fs");
 const dotenv = require("dotenv").config();
 
 function main() {
-  console.log(
-    "****************************************************************"
-  );
-
-  console.log("\t*----------------------------------------------*");
-  console.log("|\t\t\tPRE-PROCESSING DATA");
-  console.log("\t*----------------------------------------------*");
-
   // Call function to get the total Issue record count
   const totalRecordCount = getTotalRecordCount();
-  console.log("\t- Total API Issue Count: " + totalRecordCount);
 
   // Use the total record count to calculate how many iterations
   const numIterations = Math.floor(totalRecordCount / 1000) + 1;
-  console.log("\t- Number of Iterations: " + numIterations);
 
   // Create JSON object from Jira data
   const jiraJSON = getJiraJSON(numIterations);
-
-  console.log("\t*----------------------------------------------*");
-  console.log("\t\t\tPOST-PROCESSING DATA");
-  console.log("\t*----------------------------------------------*");
-  console.log("\t- API Issue Count: " + totalRecordCount);
-  console.log(
-    "\t- Output Issue Count: " + JSON.stringify(jiraJSON["issues"].length)
-  );
-  console.log(
-    "\t- Pre/Post Processing Issue Delta: " +
-      JSON.stringify(jiraJSON["issues"].length - totalRecordCount)
-  );
 
   createFile(jiraJSON, "jiraIssues.json");
 }
@@ -53,22 +31,13 @@ const getJiraJSON = (numIterations) => {
     issues: [],
   };
 
-  console.log("\t*----------------------------------------------*");
-  console.log("\t\t\tPROCESSING DATA");
-  console.log("\t*----------------------------------------------*");
-
   let i = 0;
   while (i < numIterations) {
     let startAt = 1000 * i;
     let maxResults = 1000;
 
-    if (i != 0)
-      console.log("\t------------------------------------------------");
-    console.log("\t- Getting Jira JSON for iteration " + (i + 1) + " ...");
-
     let result = getJiraIssues(startAt, maxResults);
     let newIssues = result["issues"];
-    console.log("\t- Processing Jira JSON for iteration " + (i + 1) + " ...");
 
     if (jiraJSON["total"] == null) {
       jiraJSON["total"] = result["total"];
@@ -89,8 +58,6 @@ const getJiraIssues = (startAt, maxResults) => {
   let query = `?startAt=${startAt}&maxResults=${maxResults}`;
   let endpoint = domain + path + query;
 
-  console.log("\tTEST1\tEndpoint: " + endpoint);
-
   // Set Auth Header for API authentication
   const bearerToken = `Bearer ${process.env.AUTH_TOKEN}`;
   const authHeader = {
@@ -107,11 +74,6 @@ const getJiraIssues = (startAt, maxResults) => {
     .catch((error) => {
       console.error(error);
     });
-
-/*   return {
-    issues: [{ id: "1" }, { id: "4" }, { id: "3" }],
-    total: 2100,
-  }; */
 };
 
 const createFile = (contents, name) => {
@@ -122,21 +84,9 @@ const createFile = (contents, name) => {
   }
 
   fs.appendFile(outputPath, JSON.stringify(contents), function (err) {
-    console.log("\t*----------------------------------------------*");
-    console.log("\t\t\tRESULT");
-    console.log("\t*----------------------------------------------*");
-
     if (err) {
       throw err;
-      console.log(
-        "\t*********************************************************************************************"
-      );
     }
-
-    console.log(`\t- Your file has been saved successfully.`);
-    console.log(
-      "****************************************************************"
-    );
   });
 };
 
